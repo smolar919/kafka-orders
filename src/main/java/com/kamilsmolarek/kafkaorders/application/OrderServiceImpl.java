@@ -3,6 +3,7 @@ package com.kamilsmolarek.kafkaorders.application;
 import com.kamilsmolarek.kafkaorders.domain.OrderEventLog;
 import com.kamilsmolarek.kafkaorders.dto.OrderEventForm;
 import com.kamilsmolarek.kafkaorders.infrastructure.OrderEventLogRepository;
+import com.kamilsmolarek.kafkaorders.service.EmailService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -12,9 +13,11 @@ import java.util.UUID;
 public class OrderServiceImpl implements OrderService{
 
     private final OrderEventLogRepository orderEventLogRepository;
+    private final EmailService emailService;
 
-    public OrderServiceImpl(OrderEventLogRepository orderEventLogRepository) {
+    public OrderServiceImpl(OrderEventLogRepository orderEventLogRepository, EmailService emailService) {
         this.orderEventLogRepository = orderEventLogRepository;
+        this.emailService = emailService;
     }
 
     @Override
@@ -30,6 +33,10 @@ public class OrderServiceImpl implements OrderService{
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        return orderEventLogRepository.save(orderEventLog);
+        OrderEventLog savedOrder = orderEventLogRepository.save(orderEventLog);
+
+        emailService.sendOrderConfirmationEmail(savedOrder);
+
+        return savedOrder;
     }
 }
