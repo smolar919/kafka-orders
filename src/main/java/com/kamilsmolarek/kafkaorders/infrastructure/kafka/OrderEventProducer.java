@@ -15,6 +15,7 @@ public class OrderEventProducer {
     public OrderEventProducer(KafkaTemplate<String, OrderEventMessage> kafkaTemplate,
                               @Value("${kafka.topic.order-events}") String topic) {
         this.kafkaTemplate = kafkaTemplate;
+        this.topic = topic;
     }
 
     public void sendOrderEvent(OrderEventMessage message) {
