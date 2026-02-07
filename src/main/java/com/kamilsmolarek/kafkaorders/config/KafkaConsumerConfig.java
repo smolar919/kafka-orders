@@ -20,7 +20,7 @@ public class KafkaConsumerConfig {
     @Value("${kafka.consumer.concurrency}")
     private Integer concurrency;
 
-    @Value("${spring.kafka.bootstrap-servers}")
+    @Value("${SPRING_KAFKA_BOOTSTRAP_SERVERS:${KAFKA_URL}}")
     private String bootstrapServers;
 
     @Bean
