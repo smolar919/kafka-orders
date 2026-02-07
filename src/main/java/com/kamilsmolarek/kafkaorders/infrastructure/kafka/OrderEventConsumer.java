@@ -15,7 +15,7 @@ public class OrderEventConsumer {
 
     @KafkaListener(
             topics = "${kafka.topic.order-events}",
-            groupId = "${kafka.consumer.group-id}",
+            groupId = "${spring.kafka.consumer.group-id}",
             containerFactory = "kafkaListenerContainerFactory"
     )
     public void consumeOrderEvent(OrderEventMessage message) {
