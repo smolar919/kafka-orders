@@ -2,12 +2,13 @@ package com.kamilsmolarek.kafkaorders.config;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
@@ -19,24 +20,30 @@ public class KafkaConsumerConfig {
     @Value("${kafka.consumer.concurrency}")
     private Integer concurrency;
 
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String bootstrapServers;
+
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(ConsumerFactory<String, Object> consumerFactory) {
+    public ConsumerFactory<String, Object> consumerFactory(KafkaProperties properties) {
+        Map<String, Object> props = properties.buildConsumerProperties();
 
-        ConcurrentKafkaListenerContainerFactory<String, Object> factory =
-                new ConcurrentKafkaListenerContainerFactory<>();
+        String cleanedServers = bootstrapServers.replace("kafka+ssl://", "");
 
-        factory.setConsumerFactory(consumerFactory);
-        factory.setConcurrency(concurrency);
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, cleanedServers);
+        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, maxPollRecords);
 
-        factory.getContainerProperties().setPollTimeout(3000);
-
-        return factory;
+        return new DefaultKafkaConsumerFactory<>(props);
     }
 
     @Bean
-    public Map<String, Object> consumerConfigs() {
-        Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, maxPollRecords);
-        return props;
+    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(
+            ConsumerFactory<String, Object> consumerFactory) {
+        ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
+
+        factory.setConsumerFactory(consumerFactory);
+        factory.setConcurrency(concurrency);
+        factory.getContainerProperties().setPollTimeout(3000);
+
+        return factory;
     }
 }
